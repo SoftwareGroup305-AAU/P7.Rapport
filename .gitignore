@@ -1,0 +1,58 @@
+# LaTeX auxiliary files
+*.aux
+*.log
+*.toc
+*.out
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.xdv
+*.nav
+*.snm
+*.vrb
+*.dvi
+*.ps
+
+# Bibliography
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+
+# Index / glossary
+*.idx
+*.ilg
+*.ind
+*.glo
+*.gls
+*.glsdefs
+*.ist
+*.acr
+*.acn
+*.alg
+*.glg
+
+# Packages / tools
+.minted*
+_minted*/
+*.pyg
+*.thm
+
+# Latexmk / arara temp
+latexmkrc
+*.ltjruby
+*.ltex
+
+# Editors / OS
+*~
+*.swp
+*.swo
+*.bak
+.DS_Store
+Thumbs.db
+
+# Output you may want to keep (uncomment to ignore)
+# *.pdf
