@@ -54,7 +54,5 @@ latexmkrc
 .DS_Store
 Thumbs.db
 
-.pdf
-
 # Output you may want to keep (uncomment to ignore)
-# *.pdf
+*.pdf
