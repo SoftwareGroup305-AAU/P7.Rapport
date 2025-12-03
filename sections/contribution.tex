@@ -5,3 +5,7 @@ We propose a modular and extensible API that provides a well-defined interface f
 
 %Communication Strategy
 \textbf{Communication Strategy}. We design a structured communication model based on a request/response pattern. This strategy enables efficient coordination between system modules, minimizing latency and ensures reliable message delivery under varying load conditions. By formalizing the communication, the system gains improved robustness and supports independent development and evaluation of interacting components.
+
+%LSTM Implementation
+\textbf{LSTM Implementation.}
+We developed a dedicated machine learning service encapsulating a Long Short-Term Memory (LSTM) network using TensorFlow. To address the non-stationary nature of financial time series, the implementation incorporates an automated preprocessing pipeline that transforms raw asset prices into logarithmic returns ($r_t = \ln(P_t / P_{t-1})$) prior to normalization via Min-Max scaling. The architecture utilizes a configurable sliding window approach for sequence generation, where a lookback parameter defines the number of historical observations used to predict the next value. The training pipeline supports configurable hyperparameters including the number of LSTM layers, hidden units, dropout rate, and batch size.
