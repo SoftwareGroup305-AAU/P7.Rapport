@@ -7,6 +7,20 @@ Recently, machine learning models have begun to compete with classical statistic
 
 To facilitate the investigation of the efficacy of using hybrid strategies for time series modeling, a modular platform was developed that integrates LSTM inference directly into a strategy builder. This system allows for the composition of logical dataflows in which machine learning predictions serve as auxiliary signals alongside traditional quantitative models within a broader technical framework.
 
+Our contributions are summarized as follows:
+
+\subsection{Strategy Structure}
+We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. These AI nodes utilize Long Short-Term Memory (LSTM) networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}.
+
+\subsection{API Design}
+We propose a modular and extensible API adhering to the OpenAPI specification. This interface abstracts low-level system behaviors, providing a unified contract for strategy creation, backtesting, and LSTM inference. By standardizing these operations, the design reduces integration complexity and mitigates the technical debt often associated with deploying machine learning components in software systems \cite{sculley2015hidden}.
+
+\subsection{Client (Front-End) Design}
+We designed a web-based client implemented in React that functions as a visual strategy builder. This interactive environment allows users to place, connect, and parameterize computational nodes to define execution logic without writing code \cite{skotnica2019das}. The interface features real-time validation to prevent graph errors (such as circular dependencies) and includes a dedicated backtesting panel for the immediate evaluation of constructed strategies.
+
+\subsection{Communication Strategy}
+We implemented a structured communication model based on a request/response pattern to ensure robust coordination between the front-end client, the backend API, and the machine learning service. This strategy minimizes latency and guarantees reliable message delivery, facilitating the independent development and scalable execution of the system's modular components.
+
 %The primary contribution of this study is an evaluation of whether hybrid methodologies outperform monolithic statistical or machine learning approaches \cite{Picasso2019}.
 
 % Financial time series are inherently noisy and non-stationary, making accurate prediction a challenge \cite{Fama1970}
