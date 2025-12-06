@@ -5,7 +5,7 @@
 
 The design of the strategy components was based on widely adopted statistical models and data-manipulation techniques. These building blocks were integrated into a modular framework in which strategies are represented as DAGs. Each node performs a well-defined transformation, such as fetching data, computing indicators, evaluating conditions or generating signals. Nodes are connected via typed inputs and outputs to produce end-to-end trading logic.
 
-\textbf{Assets.}
+\todo{AssetNodes retriever kun en "metric", det er en seperate global setting der skaffer fuld OHLCV data til at fuldføre en korrekt finansiel backtest}\textbf{Assets.}
 Asset nodes retrieve historical price data from the Data Warehouse API for a specified trading pair and timeframe. Depending on the simulation mode, they either supply full OHLCV candlesticks (for realistic trade-level execution) or a single selected price metric (Open, High, Low, Close). Asset nodes serve as the primary data source for all downstream components.
 
 \textbf{Indicators.}
@@ -17,7 +17,7 @@ Selector nodes extract specific values from asset or indicator outputs, optional
 \textbf{Conditions.}
 Condition nodes evaluate boolean expressions over one or more selector outputs. Supported expressions include standard comparison operators ($>$, $<$, $\geq$, $\leq$, ==, !=) and logical operators ($\land$, $\lor$). The result is a boolean time series indicating when the specified condition holds, enabling constructs such as moving-average crossovers, breakout rules, or volatility filters.
 
-\textbf{Logic.}
+\todo{Er ikke med i backtesteren - det hele er i condition noden}\textbf{Logic.}
 Logical composition is achieved by chaining or nesting condition nodes. This allows the construction of higher-order logic such as multi-factor confirmations (e.g., RSI oversold \textit{and} price above SMA) or alternative-path triggers (e.g., condition A \textit{or} condition B). Logical nodes thus enable complex decision pipelines while maintaining clear graph structure.
 
 \textbf{Signals.}
