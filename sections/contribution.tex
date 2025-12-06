@@ -86,3 +86,63 @@ Bitcoin represents a high-volatility, sentiment-driven asset class characterized
 Lockheed Martin, a large-cap defense contractor, represents a fundamentally-driven, low-volatility equity. Daily price movements are typically constrained, and the asset exhibits lower beta relative to broad market indices. This stability introduces a different challenge: in low-noise environments, overly sensitive AI models may generate excessive false signals from minor fluctuations, while statistical filters risk over-constraining valid predictions. The LMT dataset serves as a validation case to determine whether the hybrid approach generalizes beyond crypto-specific dynamics to traditional equity markets.
 
 By comparing results across these two different asset classes, the study aims to identify whether the value of statistical filtering is universal or regime-dependent, and whether the optimal filter type (trend, momentum, volatility) varies with the underlying market structure.
+
+% ========================================
+% RESULTS SECTION
+% ========================================
+
+\section{Evaluation and Results}
+
+\subsection{Bitcoin Results: The High-Volatility Case}
+
+Table~\ref{tab:btc_results} presents the aggregated performance metrics across 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
+
+\begin{table}[h]
+\centering
+\caption{Bitcoin Strategy Performance Summary (2020--2025)}
+\label{tab:btc_results}
+\begin{tabular}{lrrrrrrr}
+\hline
+\textbf{Strategy} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{Avg PF} & \textbf{Count} \\
+\hline
+AI Only & 614.75\% & 6145.69\% & 42.1\% & 27.09\% & 1.84 & 20 \\
+Single EMA & 153.70\% & 1322.59\% & 40.6\% & 16.71\% & 1.91 & 80 \\
+Dual EMA & 167.45\% & 1490.96\% & 41.1\% & 16.87\% & 1.93 & 80 \\
+RSI & 332.91\% & 4165.56\% & 42.5\% & 27.61\% & 1.83 & 60 \\
+SMA\_20 & 110.71\% & 872.61\% & 36.8\% & 14.72\% & 1.54 & 20 \\
+SMA\_50 & 127.35\% & 827.84\% & 38.5\% & 15.72\% & 1.65 & 20 \\
+SMA\_100 & 115.32\% & 694.37\% & 38.9\% & 21.63\% & 1.69 & 20 \\
+SMA\_200 & 199.17\% & 1256.70\% & 43.5\% & 22.04\% & 2.16 & 20 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{AI-Only Performance and Training Bias}
+
+The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to potential training bias. The LSTM model was trained on data spanning 2020--2024, which includes the sustained bull market of 2024. This training window likely biased the model toward predicting upward price movements, which proved correct during the majority of the test period. Consequently, the high win rate and returns may reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
+
+\subsubsection{Short-Term Filter Underperformance}
+
+Strategies filtered by short-period moving averages (SMA 20, SMA 50, SMA 100) demonstrated poor performance, with average returns of 110.71\%, 127.35\%, and 115.32\% respectively. The SMA 20 filter exhibited the lowest win rate (36.8\%) and profit factor (1.54) across all categories. In Bitcoin's high-volatility environment, short-term moving averages oscillate rapidly in response to price noise, generating frequent false regime signals. Rather than isolating high-quality predictions, these filters appear to have eliminated valid AI signals during volatile but directionally correct trends. This result demonstrates that filter timescale selection is critical in noisy markets.
+
+\subsubsection{EMA-Based Trend Filters}
+
+Exponential Moving Average filters, both single-period (EMA 20, 50, 100, 200) and dual-period configurations (e.g., EMA 9/21, 12/26), achieved average returns of 153.70\% and 167.45\% respectively. While these returns are substantially lower than AI-Only, the hybrid strategies exhibited 38\% lower drawdowns (16.71\% and 16.87\%) and improved profit factors (1.91 and 1.93). The win rates remained comparable to AI-Only (40.6\% and 41.1\%), indicating that EMA filters preserved signal quality while reducing exposure to adverse market conditions. However, the reduced return suggests that the filters eliminated a significant number of profitable trades that the biased LSTM model would have correctly predicted.
+
+\subsubsection{Long-Term Trend Filter: SMA 200}
+
+The SMA 200 filter achieved the highest hybrid performance with an average return of 199.17\%, a win rate of 43.5\%, and a profit factor of 2.16—the best risk-adjusted performance across all categories. By restricting trades to periods where the price remained above the 200-day moving average, this filter effectively isolated sustained bullish regimes while avoiding counter-trend predictions. The improved win rate relative to AI-Only (43.5\% vs. 42.1\%) and superior profit factor indicate that the long-term trend constraint successfully filtered low-confidence signals. Notably, the drawdown of 22.04\% remained elevated, suggesting that the filter did not prevent intra-trend volatility exposure.
+
+\subsubsection{RSI Momentum Filter}
+
+RSI-filtered strategies produced an average return of 332.91\%, with a peak configuration reaching 4165.56\% and a win rate of 42.5\%—the highest among all strategy types. Despite this improved win rate, the average drawdown (27.61\%) remained comparable to AI-Only, and the profit factor (1.83) was the lowest in the experiment. This indicates that RSI constraints improved prediction accuracy but did not mitigate risk during losing trades. The filter appears to function primarily as a timing mechanism, restricting trades to momentum-favorable conditions without altering the fundamental risk profile of individual positions.
+
+\subsubsection{Summary and Implications}
+
+The Bitcoin results demonstrate a fundamental trade-off between return maximization and risk control. The AI-Only baseline, despite exhibiting the highest returns, benefited significantly from training bias that aligned with the prevailing bull market. Hybrid strategies successfully reduced drawdown and improved profit factors, with SMA 200 and RSI filters achieving superior win rates (43.5\% and 42.5\% respectively) compared to the AI-Only baseline (42.1\%). However, the overall reduction in returns across hybrid strategies suggests that statistical filters eliminated numerous profitable trades that the LSTM model—despite its bias—would have correctly predicted.
+
+This outcome raises the question of whether the observed hybrid underperformance is due to Bitcoin's inherent volatility (noise overwhelming filter utility) or the specific regime alignment between training bias and test period conditions. To isolate these effects, validation on a fundamentally different asset class is required—one characterized by lower volatility, reduced noise, and market dynamics uncorrelated with cryptocurrency cycles. The following section examines whether the hybrid filtering approach demonstrates improved relative performance in a stable, low-beta equity environment.
+
+\subsection{Lockheed Martin Results: The Stability Validation}
+
+\textit{[Results pending.]}
