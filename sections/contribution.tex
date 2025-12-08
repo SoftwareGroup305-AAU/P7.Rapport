@@ -5,20 +5,17 @@
 
 The design of the strategy components was based on widely adopted statistical models and data-manipulation techniques. These building blocks were integrated into a modular framework in which strategies are represented as DAGs. Each node performs a well-defined transformation, such as fetching data, computing indicators, evaluating conditions or generating signals. Nodes are connected via typed inputs and outputs to produce end-to-end trading logic.
 
-\todo{AssetNodes retriever kun en "metric", det er en seperate global setting der skaffer fuld OHLCV data til at fuldføre en korrekt finansiel backtest}\textbf{Assets.}
-Asset nodes retrieve historical price data from the Data Warehouse API for a specified trading pair and timeframe. Depending on the simulation mode, they either supply full OHLCV candlesticks (for realistic trade-level execution) or a single selected price metric (Open, High, Low, Close). Asset nodes serve as the primary data source for all downstream components.
+\textbf{Assets.}
+Asset nodes retrieve historical price data from the Data Warehouse API for a given trading pair and timeframe. In normal operation, an asset node provides only a single configured price metric (Open, High, Low, or Close). Complete OHLCV candlestick data is not sourced from the asset node itself but from a separate global setting responsible for supplying full market data required for accurate financial backtesting. Asset nodes therefore function as lightweight, metric-specific data feeds for all downstream components.
 
 \textbf{Indicators.}
 Indicator nodes compute statistical or technical indicators over the values provided by upstream asset or selector nodes. The framework includes common indicators such as SMA, EMA, RSI, Bollinger Bands, and MACD, each producing one or more time-aligned output series. These outputs may then be used directly or passed through selectors for offsetting or field extraction.
 
 \textbf{Selectors.}
-Selector nodes extract specific values from asset or indicator outputs, optionally applying a time offset (e.g., previous bar). They provide a unified mechanism for selecting fields such as \textit{Close}, \textit{upper} (Bollinger upper band), or any indicator output. Selectors prepare data for condition nodes by ensuring that each operand refers to the correct value and temporal index.
+Selector nodes extract specific values from asset or indicator outputs, optionally applying a time offset (e.g., previous bar\todo{omformuler}). They provide a unified mechanism for selecting fields such as \textit{Close}, \textit{upper} (Bollinger upper band), or any indicator output. Selectors prepare data for condition nodes by ensuring that each operand refers to the correct value and temporal index.
 
 \textbf{Conditions.}
 Condition nodes evaluate boolean expressions over one or more selector outputs. Supported expressions include standard comparison operators ($>$, $<$, $\geq$, $\leq$, ==, !=) and logical operators ($\land$, $\lor$). The result is a boolean time series indicating when the specified condition holds, enabling constructs such as moving-average crossovers, breakout rules, or volatility filters.
-
-\todo{Er ikke med i backtesteren - det hele er i condition noden}\textbf{Logic.}
-Logical composition is achieved by chaining or nesting condition nodes. This allows the construction of higher-order logic such as multi-factor confirmations (e.g., RSI oversold \textit{and} price above SMA) or alternative-path triggers (e.g., condition A \textit{or} condition B). Logical nodes thus enable complex decision pipelines while maintaining clear graph structure.
 
 \textbf{Signals.}
 Signal nodes generate trading actions when their triggering condition is satisfied. Basic signal nodes produce directional entry instructions (long or short), while extended signal nodes additionally compute take-profit and stop-loss levels derived from percentage offsets relative to the entry price. Each signal is tied to a target asset node to ensure correct execution context.
@@ -28,10 +25,9 @@ Signal nodes generate trading actions when their triggering condition is satisfi
 AI-Nodes generate rolling machine-learning forecasts that update at every historical timestep. 
 Each node receives a univariate price series from a preceding selector, which extracts a specific field (e.g., close price) from an asset's candlestick data. Using this input, the AINode applies a pre-trained LSTM time-series model configured through parameters such as the trading pair, timeframe, model name, and prediction horizon.
 
-The node operates in a walk-forward manner. A fixed start date defines the beginning of the training window, while the end of the window advances with each bar in the dataset. At every bar $t$, the model loads its windowed training data and produces a vector of forecasts for the next $N$ periods (e.g., $\hat{p}_{t+1}, \hat{p}_{t+2}, \ldots, \hat{p}_{t+N}$). These predictions are stored as a nested structure, one forecast vector per historical bar, and can be accessed using indexed notation such as \todo{Det her er ikke rigtigt. Vi bruger SelectorNodes :)
-}\texttt{now(ai).0} or \texttt{now(ai).1} for the first and second forward steps.
+The node operates in a walk-forward manner. A fixed start date defines the beginning of the training window, while the end of the window advances with each bar in the dataset. At every bar $t$, the model loads its windowed training data and produces a vector of forecasts for the next $N$ periods (e.g., $\hat{p}_{t+1}, \hat{p}_{t+2}, \ldots, \hat{p}_{t+N}$). These predictions are stored as a nested structure, one forecast vector per historical bar, and can be specified using selector nodes.
 
-AI-Nodes enable strategies to incorporate ML-based expectations of short-or medium-term price movements, which can be combined with conventional condition nodes, logic nodes, or threshold rules to construct hybrid rule-based and AI-driven trading strategies.
+AI-Nodes enable strategies to incorporate ML-based expectations of short-or medium-term price movements, which can be combined with conventional condition nodes or threshold rules to construct hybrid rule-based and AI-driven trading strategies.
 
 A full overview and breakdown in UML-form of the different components can be seen in appendix \ref{} \todo{add to appendix}
 
@@ -40,7 +36,7 @@ A full overview and breakdown in UML-form of the different components can be see
 \todo{Burde sættes i forlængelse af introduktionen og tilpasses}
 We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
 
-\subsection{Client (Front-End) Design}
+\subsection{Client (Front-End) Design}\todo{method}
 
 We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
 The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
@@ -80,10 +76,10 @@ To rigorously test whether hybrid filtering provides consistent value across dif
 The experimental design employs a two-asset comparative approach to isolate the effects of market volatility on strategy performance:
 
 \textbf{Bitcoin (BTC/USD, 2020--2025).}
-Bitcoin represents a high-volatility, sentiment-driven asset class characterized by rapid price swings, asymmetric risk/reward profiles, and frequent regime changes between trending and mean-reverting behavior. The crypto market's 24/7 operation and susceptibility to external news shocks create a challenging environment where noise and signal are difficult to distinguish. This dataset enables evaluation of whether statistical filters can stabilize AI predictions during periods of extreme volatility and drawdown.
+Bitcoin represents a high-volatility, sentiment-driven asset class characterized by rapid price swings, asymmetric risk/reward profiles, and frequent regime changes between trending and mean-reverting behavior. The crypto market's 24/7 operation and susceptibility to external news shocks create a challenging environment where noise and signal are difficult to distinguish. This dataset enables evaluation of whether statistical filters can stabilize AI predictions during periods of extreme volatility and drawdown\todo{omformuler}.
 
 \textbf{Lockheed Martin (LMT, 2024--2025).}
-Lockheed Martin, a large-cap defense contractor, represents a fundamentally-driven, low-volatility equity. Daily price movements are typically constrained, and the asset exhibits lower beta relative to broad market indices. This stability introduces a different challenge: in low-noise environments, overly sensitive AI models may generate excessive false signals from minor fluctuations, while statistical filters risk over-constraining valid predictions. The LMT dataset serves as a validation case to determine whether the hybrid approach generalizes beyond crypto-specific dynamics to traditional equity markets.
+Lockheed Martin, a large-cap defense contractor, represents a fundamentally-driven, low-volatility equity. Daily price movements are typically constrained, and the asset exhibits lower beta\todo{omformuler} relative to broad market indices. This stability introduces a different challenge: in low-noise environments, overly sensitive AI models may generate excessive false signals from minor fluctuations, while statistical filters risk over-constraining valid predictions. The LMT dataset serves as a validation case to determine whether the hybrid approach generalizes beyond crypto-specific dynamics to traditional equity markets.
 
 By comparing results across these two different asset classes, the study aims to identify whether the value of statistical filtering is universal or regime-dependent, and whether the optimal filter type (trend, momentum, volatility) varies with the underlying market structure.
 
@@ -91,12 +87,12 @@ By comparing results across these two different asset classes, the study aims to
 % RESULTS SECTION
 % ========================================
 
-\section{Evaluation and Results}
+\subsection{Evaluation and Results}
 
-\subsection{Bitcoin Results: The High-Volatility Case}
+\textbf{Bitcoin Results: The High-Volatility Case}
 
 Table~\ref{tab:btc_results} presents the aggregated performance metrics across 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
-
+\todo{The following table is fucked}
 \begin{table}[h]
 \centering
 \caption{Bitcoin Strategy Performance Summary (2020--2025)}
@@ -119,7 +115,7 @@ SMA\_200 & 199.17\% & 1256.70\% & 43.5\% & 22.04\% & 2.16 & 20 \\
 
 \subsubsection{AI-Only Performance and Training Bias}
 
-The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to potential training bias. The LSTM model was trained on data spanning 2020--2024, which includes the sustained bull market of 2024. This training window likely biased the model toward predicting upward price movements, which proved correct during the majority of the test period. Consequently, the high win rate and returns may reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
+The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to potential training bias. The LSTM model was trained on data spanning 2020--2024, which includes the sustained bull market of 2024. This training window likely biased the model toward predicting upward price movements, which proved correct during the majority of the test period. Consequently, the high win rate and returns may reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown\todo{omformuler} of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
 
 \subsubsection{Short-Term Filter Underperformance}
 
@@ -127,22 +123,27 @@ Strategies filtered by short-period moving averages (SMA 20, SMA 50, SMA 100) de
 
 \subsubsection{EMA-Based Trend Filters}
 
-Exponential Moving Average filters, both single-period (EMA 20, 50, 100, 200) and dual-period configurations (e.g., EMA 9/21, 12/26), achieved average returns of 153.70\% and 167.45\% respectively. While these returns are substantially lower than AI-Only, the hybrid strategies exhibited 38\% lower drawdowns (16.71\% and 16.87\%) and improved profit factors (1.91 and 1.93). The win rates remained comparable to AI-Only (40.6\% and 41.1\%), indicating that EMA filters preserved signal quality while reducing exposure to adverse market conditions. However, the reduced return suggests that the filters eliminated a significant number of profitable trades that the biased LSTM model would have correctly predicted.
+Exponential Moving Average filters, both single-period (EMA 20, 50, 100, 200) and dual-period configurations (e.g., EMA 9/21, 12/26), achieved average returns of 153.70\% and 167.45\% respectively. While these returns are substantially lower than AI-Only, the hybrid strategies exhibited 38\% lower drawdowns\todo{omformuler} (16.71\% and 16.87\%) and improved profit factors (1.91 and 1.93). The win rates remained comparable to AI-Only (40.6\% and 41.1\%), indicating that EMA filters preserved signal quality while reducing exposure to adverse market conditions. However, the reduced return suggests that the filters eliminated a significant number of profitable trades that the biased LSTM model would have correctly predicted.
 
 \subsubsection{Long-Term Trend Filter: SMA 200}
 
-The SMA 200 filter achieved the highest hybrid performance with an average return of 199.17\%, a win rate of 43.5\%, and a profit factor of 2.16—the best risk-adjusted performance across all categories. By restricting trades to periods where the price remained above the 200-day moving average, this filter effectively isolated sustained bullish regimes while avoiding counter-trend predictions. The improved win rate relative to AI-Only (43.5\% vs. 42.1\%) and superior profit factor indicate that the long-term trend constraint successfully filtered low-confidence signals. Notably, the drawdown of 22.04\% remained elevated, suggesting that the filter did not prevent intra-trend volatility exposure.
+The SMA 200 filter achieved the highest hybrid performance with an average return of 199.17\%, a win rate of 43.5\%, and a profit factor of 2.16—the best risk-adjusted performance across all categories. By restricting trades to periods where the price remained above the 200-day moving average, this filter effectively isolated sustained bullish regimes while avoiding counter-trend predictions. The improved win rate relative to AI-Only (43.5\% vs. 42.1\%) and superior profit factor indicate that the long-term trend constraint successfully filtered low-confidence signals. Notably, the drawdown\todo{omformuler} of 22.04\% remained elevated, suggesting that the filter did not prevent intra-trend\todo{omformuler} volatility exposure.
 
 \subsubsection{RSI Momentum Filter}
 
-RSI-filtered strategies produced an average return of 332.91\%, with a peak configuration reaching 4165.56\% and a win rate of 42.5\%—the highest among all strategy types. Despite this improved win rate, the average drawdown (27.61\%) remained comparable to AI-Only, and the profit factor (1.83) was the lowest in the experiment. This indicates that RSI constraints improved prediction accuracy but did not mitigate risk during losing trades. The filter appears to function primarily as a timing mechanism, restricting trades to momentum-favorable conditions without altering the fundamental risk profile of individual positions.
+RSI-filtered strategies produced an average return of 332.91\%, with a peak configuration reaching 4165.56\% and a win rate of 42.5\%—the highest among all strategy types. Despite this improved win rate, the average drawdown\todo{omformuler} (27.61\%) remained comparable to AI-Only, and the profit factor (1.83) was the lowest in the experiment. This indicates that RSI constraints improved prediction accuracy but did not mitigate risk during losing trades. The filter appears to function primarily as a timing mechanism, restricting trades to momentum-favorable conditions without altering the fundamental risk profile of individual positions.
 
 \subsubsection{Summary and Implications}
 
-The Bitcoin results demonstrate a fundamental trade-off between return maximization and risk control. The AI-Only baseline, despite exhibiting the highest returns, benefited significantly from training bias that aligned with the prevailing bull market. Hybrid strategies successfully reduced drawdown and improved profit factors, with SMA 200 and RSI filters achieving superior win rates (43.5\% and 42.5\% respectively) compared to the AI-Only baseline (42.1\%). However, the overall reduction in returns across hybrid strategies suggests that statistical filters eliminated numerous profitable trades that the LSTM model—despite its bias—would have correctly predicted.
+The Bitcoin results demonstrate a fundamental trade-off between return maximization and risk control. The AI-Only baseline, despite exhibiting the highest returns, benefited significantly from training bias that aligned with the prevailing bull market. Hybrid strategies successfully reduced drawdown\todo{omformuler} and improved profit factors, with SMA 200 and RSI filters achieving superior win rates (43.5\% and 42.5\% respectively) compared to the AI-Only baseline (42.1\%). However, the overall reduction in returns across hybrid strategies suggests that statistical filters eliminated numerous profitable trades that the LSTM model—despite its bias—would have correctly predicted.
 
-This outcome raises the question of whether the observed hybrid underperformance is due to Bitcoin's inherent volatility (noise overwhelming filter utility) or the specific regime alignment between training bias and test period conditions. To isolate these effects, validation on a fundamentally different asset class is required—one characterized by lower volatility, reduced noise, and market dynamics uncorrelated with cryptocurrency cycles. The following section examines whether the hybrid filtering approach demonstrates improved relative performance in a stable, low-beta equity environment.
+This outcome raises the question of\todo{i refleksionen kendes svaret allerede} whether the observed hybrid underperformance is due to Bitcoin's inherent volatility (noise overwhelming filter utility) or the specific regime alignment between training bias and test period conditions. To isolate these effects, validation on a fundamentally different asset class is required—one characterized by lower volatility, reduced noise, and market dynamics uncorrelated with cryptocurrency cycles. The following section examines whether the hybrid filtering approach demonstrates improved relative performance in a stable, low-beta equity environment.
 
-\subsection{Lockheed Martin Results: The Stability Validation}
+\textbf{Lockheed Martin Results: The Stability Validation}
 
 \textit{[Results pending.]}
+
+\subsection{Discussion}
+Given the modular framework of the strategy builder approach used compose and measure performance of strategies, allowing for construction of very market-, asset- or time-specific strategies for short term decision making or forecasting, it can be argued that the accuracy and success rate of a strategy is largely dependent on the competence of the composition. A competently composed statistical strategy will likely still outperform a poorly constructed machine-learning or hybrid strategy, despite these results. That being said, hybrid strategies have been shown to be useful on a baseline level, given the modular strategy builder framework, allow for utilization of more tools during strategy composition. This could in turn lead to more complex networks of decision making logic, allowing a strategy to capitalize better on temporal trends. In this sense, the strength of a hybrid approach to time series prediction and forecasting within a modular strategy building framework is not solely in improved predictive accuracy, but in how it enhances overall strategy composition. When used competently, the combination of traditional statistical indicators and machine learning components can lead to strategies that are more adaptive and better aligned with asset-specific behaviors and trends.
+
+While the strategy composition itself is critical advantageous algorithmic decision making, the machine learning components also play a major role in the hybrid strategies. While traditional statistical indicators supply direction indications based on historical data, the predictions of machine learning components may vary greatly based on the configuration of the individual component. Furthermore, the utility that a component may provide in a strategy concerning one asset may not be the same for strategies concerning other assets. This issue is partially alleviated by the component oriented framework of the project which includes the implementation of a backtester to evaluate strategies real-time, and the utilization of LSTM, a lightweight machine learning architecture, which can be trained within a relatively short time frame. This time frame is dependent on the hardware, model complexity, epochs, and training data, but was for the most part below one hour with personal hardware. This framework can easily train new models on specific data, and gauge the usefulness of strategies on historical data through real-time testing and evaluation of decision-making capabilities.

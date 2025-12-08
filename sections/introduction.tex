@@ -10,17 +10,18 @@ To facilitate the investigation of the efficacy of using hybrid strategies for t
 Our contributions are summarized as follows:
 
 \subsection{Strategy Structure}
-We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. These AI nodes utilize Long Short-Term Memory (LSTM) networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}.
+We developed a modular framework that structures strategies as Directed Acyclic Graphs (DAGs). This system utilizes distinct "nodes" to execute specific tasks, such as retrieving asset data, calculating technical indicators, or evaluating logical conditions. Additionally, we integrated AI prediction nodes that employ LSTM models to forecast future prices. This architecture allows for the combination of deterministic trading rules with probabilistic machine learning predictions in a structured manner, drawing on concepts from flow-based programming \cite{paleyes2022empirical}.
 
 \subsection{API Design}
-We propose a modular and extensible API adhering to the OpenAPI specification. This interface abstracts low-level system behaviors, providing a unified contract for strategy creation, backtesting, and LSTM inference. By standardizing these operations, the design reduces integration complexity and mitigates the technical debt often associated with deploying machine learning components in software systems \cite{sculley2015hidden}.
+We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
 
 \subsection{Client (Front-End) Design}
-We designed a web-based client implemented in React that functions as a visual strategy builder. This interactive environment allows users to place, connect, and parameterize computational nodes to define execution logic without writing code \cite{skotnica2019das}. The interface features real-time validation to prevent graph errors (such as circular dependencies) and includes a dedicated backtesting panel for the immediate evaluation of constructed strategies.
+We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
+The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
+Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order. 
 
 \subsection{Communication Strategy}
-We implemented a structured communication model based on a request/response pattern to ensure robust coordination between the front-end client, the backend API, and the machine learning service. This strategy minimizes latency and guarantees reliable message delivery, facilitating the independent development and scalable execution of the system's modular components.
-
+We established a structured communication model using a request/response pattern to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently.
 %The primary contribution of this study is an evaluation of whether hybrid methodologies outperform monolithic statistical or machine learning approaches \cite{Picasso2019}.
 
 % Financial time series are inherently noisy and non-stationary, making accurate prediction a challenge \cite{Fama1970}
