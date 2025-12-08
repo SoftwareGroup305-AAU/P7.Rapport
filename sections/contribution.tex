@@ -1,96 +1,10 @@
 \section{Contribution}
 
-%Strategy Structure
-\subsection{Strategy Structure}
-
-The design of the strategy components was based on widely adopted statistical models and data-manipulation techniques. These building blocks were integrated into a modular framework in which strategies are represented as DAGs. Each node performs a well-defined transformation, such as fetching data, computing indicators, evaluating conditions or generating signals. Nodes are connected via typed inputs and outputs to produce end-to-end trading logic.
-
-\textbf{Assets.}
-Asset nodes retrieve historical price data from the Data Warehouse API for a given trading pair and timeframe. In normal operation, an asset node provides only a single configured price metric (Open, High, Low, or Close). Complete OHLCV candlestick data is not sourced from the asset node itself but from a separate global setting responsible for supplying full market data required for accurate financial backtesting. Asset nodes therefore function as lightweight, metric-specific data feeds for all downstream components.
-
-\textbf{Indicators.}
-Indicator nodes compute statistical or technical indicators over the values provided by upstream asset or selector nodes. The framework includes common indicators such as SMA, EMA, RSI, Bollinger Bands, and MACD, each producing one or more time-aligned output series. These outputs may then be used directly or passed through selectors for offsetting or field extraction.
-
-\textbf{Selectors.}
-Selector nodes extract specific values from asset or indicator outputs, optionally applying a time offset (e.g., previous bar\todo{omformuler}). They provide a unified mechanism for selecting fields such as \textit{Close}, \textit{upper} (Bollinger upper band), or any indicator output. Selectors prepare data for condition nodes by ensuring that each operand refers to the correct value and temporal index.
-
-\textbf{Conditions.}
-Condition nodes evaluate boolean expressions over one or more selector outputs. Supported expressions include standard comparison operators ($>$, $<$, $\geq$, $\leq$, ==, !=) and logical operators ($\land$, $\lor$). The result is a boolean time series indicating when the specified condition holds, enabling constructs such as moving-average crossovers, breakout rules, or volatility filters.
-
-\textbf{Signals.}
-Signal nodes generate trading actions when their triggering condition is satisfied. Basic signal nodes produce directional entry instructions (long or short), while extended signal nodes additionally compute take-profit and stop-loss levels derived from percentage offsets relative to the entry price. Each signal is tied to a target asset node to ensure correct execution context.
-
-
-\textbf{AI Prediction Nodes (AI-Nodes).}
-AI-Nodes generate rolling machine-learning forecasts that update at every historical timestep. 
-Each node receives a univariate price series from a preceding selector, which extracts a specific field (e.g., close price) from an asset's candlestick data. Using this input, the AINode applies a pre-trained LSTM time-series model configured through parameters such as the trading pair, timeframe, model name, and prediction horizon.
-
-The node operates in a walk-forward manner. A fixed start date defines the beginning of the training window, while the end of the window advances with each bar in the dataset. At every bar $t$, the model loads its windowed training data and produces a vector of forecasts for the next $N$ periods (e.g., $\hat{p}_{t+1}, \hat{p}_{t+2}, \ldots, \hat{p}_{t+N}$). These predictions are stored as a nested structure, one forecast vector per historical bar, and can be specified using selector nodes.
-
-AI-Nodes enable strategies to incorporate ML-based expectations of short-or medium-term price movements, which can be combined with conventional condition nodes or threshold rules to construct hybrid rule-based and AI-driven trading strategies.
-
-A full overview and breakdown in UML-form of the different components can be seen in appendix \todo{add to appendix}
-
-%API Design
-\subsection{API Design}
-\todo{Burde sættes i forlængelse af introduktionen og tilpasses}
-We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
-
-\subsection{Client (Front-End) Design}
-
-We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
-The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
-Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order.
-
-The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. 
-
-A dedicated back-testing panel allows users to execute the constructed node graph against historical market data and analyze performance metrics. 
-
-The interface therefore functions as both a modeling tool (similar in concept to node-based UML-style editors) and an experimentation environment, enabling users to iteratively design, test, and refine quantitative strategies through a highly visual and intuitive workflow.
-
-%Communication Strategy
-\subsection{Communication Strategy}
-\todo{Burde sættes i forlængelse af introduktionen og tilpasses}
-We design a structured communication model based on a request/response pattern. This strategy enables efficient coordination between system modules, minimizing latency and ensures reliable message delivery under varying load conditions. By formalizing the communication, the system gains improved robustness and supports independent development and evaluation of interacting components.
-
 %LSTM Implementation
 \subsection{LSTM Service Implementation}
 
-We developed a dedicated machine learning service that encapsulates the LSTM model described in Section \ref{sec:method}. This service abstracts the complexities of TensorFlow and provides a high-level interface for the strategy builder.
+We developed a dedicated machine learning service that encapsulates the LSTM model described in Section \ref{sec:method}. This service abstracts the complexities of TensorFlow and provides a high-level interface for the strategy builder. The implementation features an automated pipeline composed of three primary stages. First, during data ingestion and transformation, the service automatically retrieves raw price data from the ClickHouse database, computes logarithmic returns, and applies Min-Max scaling to ensure the model consistently receives stationary, normalized data without manual intervention. Second, the model lifecycle management component oversees initialization, training, and serialization of models, storing trained instances together with their metadata—such as hyperparameters, scaling factors, and training timestamps—to enable full reproducibility. Finally, the batched inference stage supports efficient backtesting through a vectorized inference engine that constructs batches of sliding windows and processes them in parallel on the GPU, when available, substantially reducing evaluation time across long historical datasets. This modular architecture allows the machine learning component to be updated or replaced, for instance by modifying the network architecture or tuning hyperparameters, without impacting the surrounding strategy framework.
 
-The implementation provides an automated pipeline consisting of three stages:
-\begin{enumerate}
-    \item \textbf{Data Ingestion \& Transformation:} The service automatically fetches raw price data from the ClickHouse database, computes logarithmic returns, and applies Min-Max scaling. This ensures that the model always receives stationary, normalized data without manual intervention.
-    \item \textbf{Model Lifecycle Management:} The system handles the initialization, training, and serialization of models. Trained models are saved alongside their metadata (hyperparameters, scaling factors, and training timestamps) to ensure reproducibility.
-    \item \textbf{Batched Inference:} To support efficient backtesting, the service implements a vectorized inference engine. Instead of predicting one time-step at a time, the system constructs batches of sliding windows and processes them in parallel on the GPU, if available, significantly reducing the time required to evaluate strategies over long historical periods.
-\end{enumerate}
-
-This modular implementation allows the machine learning component to be updated or swapped (e.g., changing the architecture or hyperparameters) without affecting the rest of the strategy framework.
-
-\subsection{Implemented Strategy Archetypes}
-To validate the modular framework and investigate whether statistical indicators can function as "regime filters" for machine-learning predictions, we constructed three distinct classes of trading strategies using the node-based architecture. These archetypes represent fundamentally different approaches to algorithmic trading and enable controlled comparison between traditional, AI-driven, and hybrid methodologies.
-
-\textbf{Statistical Strategies (Control).}
-These strategies rely exclusively on \textit{Asset}, \textit{Indicator}, \textit{Selector}, and \textit{Condition} nodes, representing traditional rule-based algorithmic trading. Condition nodes evaluate relationships between technical indicators to generate trading signals without any machine learning component. Examples include Moving Average crossovers (e.g., SMA 20 crosses above SMA 50), Mean Reversion strategies based on Bollinger Bands, and momentum filters using the Relative Strength Index (RSI). These strategies establish a baseline for what can be achieved with purely statistical logic.
-
-\textbf{AI-Only Strategies (Baseline).}
-This class isolates the predictive capability of the \textit{AI-Nodes} by creating a direct pipeline from prediction to execution. The strategy graph consists of an Asset node feeding a Selector (to extract close price), connected to an AI-Node (producing LSTM forecasts), which then connects to a Condition node that evaluates whether the predicted price $\hat{p}_{t+n}$ exceeds the current price $p_t$ by a configurable threshold percentage. When this condition is satisfied, a Signal node generates a directional trade. This archetype measures the "raw" performance of the deep learning model without any statistical constraints, representing an aggressive, prediction-driven approach.
-
-\textbf{Hybrid Strategies (Experimental).}
-The primary experimental contribution involves Hybrid strategies that combine AI-Node predictions with statistical constraints within compound Condition nodes. Rather than treating statistical indicators as independent signal generators, these strategies use them as "regime filters" or "confirmation layers" for AI predictions. The Condition node evaluates a boolean expression that requires both the AI prediction criterion \textit{and} a statistical criterion to be satisfied simultaneously (e.g., \texttt{(predicted > current * 1.02) AND (price > SMA\_200)}). This topology tests the hypothesis that statistical context—such as trend direction, momentum state, or volatility regime—can reduce false positives in volatility-sensitive machine learning models while preserving high-confidence signals.
-
-\subsection{Experimental Design and Asset Selection}
-To rigorously test whether hybrid filtering provides consistent value across different market regimes, we implemented approximately 340 unique strategy configurations spanning all three archetypes. Each configuration varies parameters such as indicator periods, AI prediction horizons, threshold percentages, and filter combinations.
-
-The experimental design employs a two-asset comparative approach to isolate the effects of market volatility on strategy performance:
-
-\textbf{Bitcoin (BTC/USD, 2020--2025).}
-Bitcoin represents a high-volatility, sentiment-driven asset class characterized by rapid price swings, asymmetric risk/reward profiles, and frequent regime changes between trending and mean-reverting behavior. The crypto market's 24/7 operation and susceptibility to external news shocks create a challenging environment where noise and signal are difficult to distinguish. This dataset enables evaluation of whether statistical filters can stabilize AI predictions during periods of extreme volatility and drawdown\todo{omformuler}.
-
-\textbf{Lockheed Martin (LMT, 2024--2025).}
-Lockheed Martin, a large-cap defense contractor, represents a fundamentally-driven, low-volatility equity. Daily price movements are typically constrained, and the asset exhibits lower beta\todo{omformuler} relative to broad market indices. This stability introduces a different challenge: in low-noise environments, overly sensitive AI models may generate excessive false signals from minor fluctuations, while statistical filters risk over-constraining valid predictions. The LMT dataset serves as a validation case to determine whether the hybrid approach generalizes beyond crypto-specific dynamics to traditional equity markets.
-
-By comparing results across these two different asset classes, the study aims to identify whether the value of statistical filtering is universal or regime-dependent, and whether the optimal filter type (trend, momentum, volatility) varies with the underlying market structure.
 
 % ========================================
 % RESULTS SECTION
@@ -156,3 +70,7 @@ This outcome raises the question of\todo{i refleksionen kendes svaret allerede} 
 Given the modular framework of the strategy builder approach used compose and measure performance of strategies, allowing for construction of very market-, asset- or time-specific strategies for short term decision making or forecasting, it can be argued that the accuracy and success rate of a strategy is largely dependent on the competence of the composition. A competently composed statistical strategy will likely still outperform a poorly constructed machine-learning or hybrid strategy, despite these results. That being said, hybrid strategies have been shown to be useful on a baseline level, given the modular strategy builder framework, allow for utilization of more tools during strategy composition. This could in turn lead to more complex networks of decision making logic, allowing a strategy to capitalize better on temporal trends. In this sense, the strength of a hybrid approach to time series prediction and forecasting within a modular strategy building framework is not solely in improved predictive accuracy, but in how it enhances overall strategy composition. When used competently, the combination of traditional statistical indicators and machine learning components can lead to strategies that are more adaptive and better aligned with asset-specific behaviors and trends.
 
 While the strategy composition itself is critical advantageous algorithmic decision making, the machine learning components also play a major role in the hybrid strategies. While traditional statistical indicators supply direction indications based on historical data, the predictions of machine learning components may vary greatly based on the configuration of the individual component. Furthermore, the utility that a component may provide in a strategy concerning one asset may not be the same for strategies concerning other assets. This issue is partially alleviated by the component oriented framework of the project which includes the implementation of a backtester to evaluate strategies real-time, and the utilization of LSTM, a lightweight machine learning architecture, which can be trained within a relatively short time frame. This time frame is dependent on the hardware, model complexity, epochs, and training data, but was for the most part below one hour with personal hardware. This framework can easily train new models on specific data, and gauge the usefulness of strategies on historical data through real-time testing and evaluation of decision-making capabilities.
+
+In order to facilitate contribution, task distribution, and knowledge sharing, weekly stand-up meetings were held. These meetings helped introduce discussion concerning tasks, helped align overall goals and requirements of the individual components, and ensured focused development. Enabling and encouraging open discussion about tasks helps keep all group members aligned on the direction of the project, ensuring the modular components in the overall framework function together.
+
+The multi-repository approach described in section \ref{method:process} aided drastically in consistent progress across the entire project. Not only did it allow for clear separation of concerns between data ingestion, model training and strategy composition, but also reduced conflict during iterative development. Ultimately, the multi-repository approach introduced a more reliable iterative development cycle along with enforcing a scalable and extensible framework.

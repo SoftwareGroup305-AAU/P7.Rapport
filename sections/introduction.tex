@@ -1,7 +1,5 @@
 \section{Introduction}
 
-Test
-
 Time series prediction has become a critical component of various modern analytical and decision making systems. Whether the task is to forecasts weather or energy demand, anticipate component failure in mechanical systems, or understand and predict financial market dynamics, the ability to model future data is a major advantage in most domains, and improves system performance and informed decisions. Regardless of the application, the efficiency of forecasting and decision making depends on methods capable of capturing structure in temporal data.
 
 Recently, machine learning models have begun to compete with classical statistical and quantitative models as methodology for time series prediction. Traditional quantitative strategies rely on technical analysis to identify historical patterns through statistical indicators \cite{Ariyo2014}. Although interpretable, these linear methods often fail to capture complex market dynamics. In contrast, deep learning models, particularly Long Short-Term Memory (LSTM) networks, excel at modeling non-linear dependencies \cite{Hochreiter1997}. However, standalone machine learning models frequently suffer from overfitting and lack of transparency in decision-making \cite{Fischer2018}.
@@ -13,7 +11,9 @@ To facilitate the investigation of the efficacy of using hybrid strategies for t
 Our contributions are summarized as follows:
 
 \subsection{Strategy Structure}
-We developed a modular framework that structures strategies as Directed Acyclic Graphs (DAGs). This system utilizes distinct "nodes" to execute specific tasks, such as retrieving asset data, calculating technical indicators, or evaluating logical conditions. Additionally, we integrated AI prediction nodes that employ LSTM models to forecast future prices. This architecture allows for the combination of deterministic trading rules with probabilistic machine learning predictions in a structured manner, drawing on concepts from flow-based programming \cite{paleyes2022empirical}.
+We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. 
+ This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. 
+ These AI nodes utilize Long Short-Term Memory (LSTM) networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}. 
 
 \subsection{API Design}
 We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
@@ -21,7 +21,14 @@ We propose a modular and extensible API that provides a well-defined interface f
 \subsection{Client (Front-End) Design}
 We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
 The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
-Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order. 
+Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order.
+
+The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. 
+
+A dedicated back-testing panel allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
+ 
+The interface therefore functions as both a modeling tool (similar in concept to node-based UML-style editors) and an experimentation environment, enabling users to iteratively design, test, and refine quantitative strategies through a highly visual and intuitive workflow.
+
 
 \subsection{Communication Strategy}
 We established a structured communication model using a request/response pattern to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently.
