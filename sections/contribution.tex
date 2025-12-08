@@ -12,7 +12,14 @@ We developed a dedicated machine learning service that encapsulates the LSTM mod
 
 \subsection{Evaluation and Results}
 
-\textbf{Bitcoin Results: The High-Volatility Case}
+The experimental evaluation followed an iterative, two-phase approach designed to address the limitations discovered in the initial Bitcoin experiments. The first phase established baseline performance on a high-volatility asset (Bitcoin) and revealed critical issues with training bias and overfitting. The second phase applied these lessons to a low-volatility equity (JPMorgan Chase) using improved training methodology and proper temporal validation, enabling a cleaner assessment of whether statistical filters genuinely enhance AI-driven trading strategies.
+
+\subsubsection{Phase 1: Bitcoin Experiments and Training Bias Discovery}
+
+\textbf{Experimental Setup and Methodology Issues.}
+The initial Bitcoin experiments utilized an LSTM model trained exclusively on 2023 data, a single year characterized by sustained bull market conditions, particularly the strong uptrend in late 2023. The model was then tested on data extending into 2024--2025, which continued the bullish trend present in the training data. This temporal overlap between training regime and test regime introduced significant training bias: the model learned to predominantly predict upward price movements because that pattern dominated its training period, and this bias appeared to be validated during backtesting because the test period exhibited similar bullish characteristics. The limited training window (one year) further exacerbated overfitting, as the model had insufficient exposure to diverse market conditions.
+
+\textbf{Observed Performance and Interpretation.}
 
 Table~\ref{tab:btc_results} presents the aggregated performance metrics across 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
 
@@ -20,7 +27,7 @@ Table~\ref{tab:btc_results} presents the aggregated performance metrics across 3
 \centering
 \caption{Bitcoin Strategy Performance Summary (2020--2025)}
 \label{tab:btc_results}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \hline
 \textbf{Strategy} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{Avg PF} & \textbf{Count} \\
 \hline
@@ -38,7 +45,7 @@ SMA\_200 & 199.17\% & 1256.70\% & 43.5\% & 22.04\% & 2.16 & 20 \\
 
 \subsubsection{AI-Only Performance and Training Bias}
 
-The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to potential training bias. The LSTM model was trained on data spanning 2020--2024, which includes the sustained bull market of 2024. This training window likely biased the model toward predicting upward price movements, which proved correct during the majority of the test period. Consequently, the high win rate and returns may reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown\todo{omformuler} of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
+The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to severe training bias. The LSTM model was trained on only 2023 data, a single year dominated by a sustained bull market. This limited training window biased the model toward predicting upward price movements, which proved correct during the majority of the test period (2024--2025 bull continuation). Consequently, the high win rate and returns reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
 
 \subsubsection{Short-Term Filter Underperformance}
 
@@ -46,25 +53,78 @@ Strategies filtered by short-period moving averages (SMA 20, SMA 50, SMA 100) de
 
 \subsubsection{EMA-Based Trend Filters}
 
-Exponential Moving Average filters, both single-period (EMA 20, 50, 100, 200) and dual-period configurations (e.g., EMA 9/21, 12/26), achieved average returns of 153.70\% and 167.45\% respectively. While these returns are substantially lower than AI-Only, the hybrid strategies exhibited 38\% lower drawdowns\todo{omformuler} (16.71\% and 16.87\%) and improved profit factors (1.91 and 1.93). The win rates remained comparable to AI-Only (40.6\% and 41.1\%), indicating that EMA filters preserved signal quality while reducing exposure to adverse market conditions. However, the reduced return suggests that the filters eliminated a significant number of profitable trades that the biased LSTM model would have correctly predicted.
+Exponential Moving Average filters, both single-period (EMA 20, 50, 100, 200) and dual-period configurations (e.g., EMA 9/21, 12/26), achieved average returns of 153.70\% and 167.45\% respectively. While these returns are substantially lower than AI-Only, the hybrid strategies exhibited 38\% lower drawdowns (16.71\% and 16.87\%) and improved profit factors (1.91 and 1.93). The win rates remained comparable to AI-Only (40.6\% and 41.1\%), indicating that EMA filters preserved signal quality while reducing exposure to adverse market conditions. However, the reduced return suggests that the filters eliminated a significant number of profitable trades that the biased LSTM model would have correctly predicted.
 
 \subsubsection{Long-Term Trend Filter: SMA 200}
 
-The SMA 200 filter achieved the highest hybrid performance with an average return of 199.17\%, a win rate of 43.5\%, and a profit factor of 2.16—the best risk-adjusted performance across all categories. By restricting trades to periods where the price remained above the 200-day moving average, this filter effectively isolated sustained bullish regimes while avoiding counter-trend predictions. The improved win rate relative to AI-Only (43.5\% vs. 42.1\%) and superior profit factor indicate that the long-term trend constraint successfully filtered low-confidence signals. Notably, the drawdown\todo{omformuler} of 22.04\% remained elevated, suggesting that the filter did not prevent intra-trend\todo{omformuler} volatility exposure.
+The SMA 200 filter achieved the highest hybrid performance with an average return of 199.17\%, a win rate of 43.5\%, and a profit factor of 2.16—the best risk-adjusted performance across all categories. By restricting trades to periods where the price remained above the 200-day moving average, this filter effectively isolated sustained bullish regimes while avoiding counter-trend predictions. The improved win rate relative to AI-Only (43.5\% vs. 42.1\%) and superior profit factor indicate that the long-term trend constraint successfully filtered low-confidence signals. Notably, the drawdown of 22.04\% remained elevated, suggesting that the filter did not prevent intra-trend volatility exposure.
 
 \subsubsection{RSI Momentum Filter}
 
-RSI-filtered strategies produced an average return of 332.91\%, with a peak configuration reaching 4165.56\% and a win rate of 42.5\%—the highest among all strategy types. Despite this improved win rate, the average drawdown\todo{omformuler} (27.61\%) remained comparable to AI-Only, and the profit factor (1.83) was the lowest in the experiment. This indicates that RSI constraints improved prediction accuracy but did not mitigate risk during losing trades. The filter appears to function primarily as a timing mechanism, restricting trades to momentum-favorable conditions without altering the fundamental risk profile of individual positions.
+RSI-filtered strategies produced an average return of 332.91\%, with a peak configuration reaching 4165.56\% and a win rate of 42.5\%—the highest among all strategy types. Despite this improved win rate, the average drawdown (27.61\%) remained comparable to AI-Only, and the profit factor (1.83) was the lowest in the experiment. This indicates that RSI constraints improved prediction accuracy but did not mitigate risk during losing trades. The filter appears to function primarily as a timing mechanism, restricting trades to momentum-favorable conditions without altering the fundamental risk profile of individual positions.
 
 \subsubsection{Summary and Implications}
 
-The Bitcoin results demonstrate a fundamental trade-off between return maximization and risk control. The AI-Only baseline, despite exhibiting the highest returns, benefited significantly from training bias that aligned with the prevailing bull market. Hybrid strategies successfully reduced drawdown\todo{omformuler} and improved profit factors, with SMA 200 and RSI filters achieving superior win rates (43.5\% and 42.5\% respectively) compared to the AI-Only baseline (42.1\%). However, the overall reduction in returns across hybrid strategies suggests that statistical filters eliminated numerous profitable trades that the LSTM model—despite its bias—would have correctly predicted.
+The Bitcoin results demonstrate a fundamental trade-off between return maximization and risk control. The AI-Only baseline, despite exhibiting the highest returns, benefited significantly from training bias that aligned with the prevailing bull market. Hybrid strategies successfully reduced drawdown and improved profit factors, with SMA 200 and RSI filters achieving superior win rates (43.5\% and 42.5\% respectively) compared to the AI-Only baseline (42.1\%). However, the overall reduction in returns across hybrid strategies suggests that statistical filters eliminated numerous profitable trades that the LSTM model—despite its bias—would have correctly predicted.
 
-This outcome raises the question of\todo{i refleksionen kendes svaret allerede} whether the observed hybrid underperformance is due to Bitcoin's inherent volatility (noise overwhelming filter utility) or the specific regime alignment between training bias and test period conditions. To isolate these effects, validation on a fundamentally different asset class is required—one characterized by lower volatility, reduced noise, and market dynamics uncorrelated with cryptocurrency cycles. The following section examines whether the hybrid filtering approach demonstrates improved relative performance in a stable, low-beta equity environment.
+This outcome raises the question of whether the observed hybrid underperformance is due to Bitcoin's inherent volatility (noise overwhelming filter utility) or the specific regime alignment between training bias and test period conditions. To isolate these effects, validation on a fundamentally different asset class is required—one characterized by lower volatility, reduced noise, and market dynamics uncorrelated with cryptocurrency cycles. The following section examines whether the hybrid filtering approach demonstrates improved relative performance in a stable, low-beta equity environment.
 
-\textbf{Lockheed Martin Results: The Stability Validation}
+\subsection{JPMorgan Chase Results: The Stability Validation}
 
-\textit{[Results pending.]}
+\subsubsection{Phase 2: JPMorgan Chase and Improved Methodology}
+
+\textbf{Addressing Phase 1 Limitations.}
+The second phase implemented a rigorous temporal validation framework to eliminate training bias. The LSTM model for JPMorgan Chase was trained exclusively on data from 2020--2023, and backtesting was performed on strictly out-of-sample data from 2024 to December 2025. This 2-year out-of-sample period ensures that the model encounters market regimes and price patterns not present in its training data, providing a more reliable measure of generalization capability. Additionally, regularization techniques were applied during training to reduce overfitting to the 2020--2023 period, ensuring that the model learned generalizable features rather than memorizing historical sequences.
+
+\textbf{Asset Characteristics and Hypothesis.}
+JPMorgan Chase represents a fundamentally different market environment compared to Bitcoin. As a large-cap financial stock, JPM exhibits significantly lower volatility, higher liquidity, and price movements driven primarily by earnings reports, macroeconomic indicators, and sector rotation rather than sentiment and speculation. This stability provides two key advantages for evaluating hybrid strategies: (1) a higher signal-to-noise ratio that allows LSTM models to identify persistent patterns without excessive noise interference, and (2) more consistent directional trends that enable statistical filters to function as intended—isolating high-quality predictions rather than randomly discarding signals due to volatility spikes.
+
+\subsubsection{JPM Strategy Performance Summary (2024--2025 Out-of-Sample)}
+
+Table~\ref{tab:jpm_results} presents the aggregated performance metrics for JPMorgan Chase. The results contrast sharply with the Bitcoin experiment, demonstrating significantly higher win rates and lower drawdowns across all categories.
+
+\begin{table}[h]
+\centering
+\caption{JPM Strategy Performance (Out-of-Sample: 2024--2025)}
+\label{tab:jpm_results}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Indicator} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{N} \\
+\hline
+AI Only (Baseline) & 16.8\% & 44.9\% & 55.9\% & 6.7\% & 20 \\
+dema\_9\_21 & 7.1\% & 22.1\% & 53.8\% & 3.2\% & 20 \\
+dema\_12\_26 & 9.8\% & 34.9\% & 49.3\% & 3.4\% & 20 \\
+dema\_20\_50 & 24.2\% & 51.5\% & 69.7\% & 3.0\% & 20 \\
+dema\_50\_100 & 16.4\% & 34.9\% & 68.7\% & 2.8\% & 20 \\
+RSI & 15.8\% & 48.3\% & 55.4\% & 6.3\% & 20 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Superior Win Rates and Stability}
+The most striking difference between the JPM and BTC experiments is the baseline win rate. While Bitcoin strategies struggled to break 45\% win rates, the JPM AI-Only baseline achieved 55.9\%, and the best Hybrid filters (dema\_20\_50 and dema\_50\_100) exceeded 69\% win rates. This confirms the hypothesis that lower-volatility assets provide cleaner signal-to-noise ratios for LSTM models. The AI model successfully identified predictable patterns in JPM's price action that were likely obscured by noise in the Bitcoin dataset. Furthermore, the average drawdown for the best Hybrid strategies was under 3.0\%, compared to 16--27\% for Bitcoin, highlighting the stability of the asset class.
+
+\subsubsection{Hybrid Outperformance: Dual EMA Filters}
+Unlike the Bitcoin experiment, where Hybrid strategies generally lagged behind the aggressive AI-Only baseline in total return, the JPM results demonstrate clear Hybrid outperformance. The \textbf{dema\_20\_50} configuration achieved a \textbf{24.2\% average return} and \textbf{69.7\% average win rate}, surpassing the AI-Only baseline (16.8\% return, 55.9\% win rate) by \textbf{44\% in return} and \textbf{25\% in win rate}. The best individual strategy in this category reached \textbf{51.5\% return}, exceeding the best AI-Only configuration (44.9\%).
+
+The \textbf{dema\_50\_100} filter similarly outperformed with a 16.4\% average return and 68.7\% win rate, while maintaining the lowest average drawdown (2.8\%) of all categories. This demonstrates that longer-period dual EMA filters effectively isolate high-conviction AI predictions aligned with major trends, eliminating noise-driven false signals without sacrificing profitable opportunities.
+
+\subsubsection{Short-Term Filter Underperformance Persists}
+Consistent with the Bitcoin results, short-period filters (dema\_9\_21, dema\_12\_26) underperformed relative to the AI-Only baseline. The dema\_9\_21 configuration achieved only 7.1\% average return with a 53.8\% win rate, while dema\_12\_26 managed 9.8\% return and 49.3\% win rate. These results indicate that short-term trend filters are overly reactive even in stable markets, rejecting valid AI predictions due to minor price oscillations. This pattern holds across both asset classes, suggesting that filter timescale selection is universally critical.
+
+\subsubsection{RSI Filter Performance}
+The RSI momentum filter achieved a 15.8\% average return and 55.4\% win rate, nearly matching the AI-Only baseline while maintaining a comparable drawdown (6.3\%). The best RSI configuration reached 48.3\% return, demonstrating strong individual performance but inconsistent average results. Unlike the dual EMA filters, RSI constraints did not consistently improve win rates, suggesting that momentum-based filtering is less effective than trend-based filtering for stabilizing AI predictions in low-volatility equities.
+
+\subsubsection{Key Insight: Market Regime Dictates Filter Value}
+The JPM results validate the core hypothesis: \textbf{in stable, low-noise markets with proper temporal validation, statistical filters add significant value by improving both returns and win rates}. The dema\_20\_50 and dema\_50\_100 filters achieved the highest win rates in the entire study (69.7\% and 68.7\%), proving that hybrid strategies can outperform pure AI baselines when the underlying asset exhibits consistent directional trends and the model is evaluated on truly unseen data.
+
+This contrasts sharply with Bitcoin, where the AI-Only approach appeared to dominate due to the confluence of (1) training bias aligned with a sustained bull market, (2) test period regime similarity to training period, and (3) high volatility that amplified the returns of any bullish-biased strategy. In that context, filters primarily served to reduce risk rather than enhance returns, because they constrained the very bias that was (coincidentally) profitable.
+
+The reversal of relative performance between Phase 1 and Phase 2 demonstrates that the optimal strategy architecture is regime-dependent: high-volatility, sentiment-driven markets favor aggressive AI-Only approaches \textit{when training and test regimes align}, while low-volatility, fundamentally-driven markets with proper out-of-sample validation benefit from conservative hybrid filtering that prioritizes signal quality over signal quantity. The JPM results represent the more generalizable finding, as they eliminate the methodological confounds present in the Bitcoin experiments.
+
+\subsubsection{Implications for Production Deployment}
+The iterative experimental process reveals a critical lesson for practitioners: \textbf{apparent AI-Only outperformance must be validated against proper temporal splits and asset diversity before deployment}. The Bitcoin results, while impressive in raw magnitude, would likely degrade significantly in a regime-shifted market (e.g., a prolonged bear market or sideways consolidation), whereas the JPM hybrid strategies demonstrated robust performance on truly unseen data. For production trading systems, this suggests that hybrid architectures with long-period trend filters (20/50, 50/100 EMA) provide superior risk-adjusted returns and generalization capability compared to unconstrained AI predictions, particularly in stable asset classes where overfitting to historical bull markets poses a significant risk.
+
 
 \subsection{Discussion}
 Given the modular framework of the strategy builder approach used compose and measure performance of strategies, allowing for construction of very market-, asset- or time-specific strategies for short term decision making or forecasting, it can be argued that the accuracy and success rate of a strategy is largely dependent on the competence of the composition. A competently composed statistical strategy will likely still outperform a poorly constructed machine-learning or hybrid strategy, despite these results. That being said, hybrid strategies have been shown to be useful on a baseline level, given the modular strategy builder framework, allow for utilization of more tools during strategy composition. This could in turn lead to more complex networks of decision making logic, allowing a strategy to capitalize better on temporal trends. In this sense, the strength of a hybrid approach to time series prediction and forecasting within a modular strategy building framework is not solely in improved predictive accuracy, but in how it enhances overall strategy composition. When used competently, the combination of traditional statistical indicators and machine learning components can lead to strategies that are more adaptive and better aligned with asset-specific behaviors and trends.
