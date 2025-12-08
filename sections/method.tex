@@ -1,14 +1,14 @@
-\section{Method}
+\section{Method}\label{sec:method}
 
 
 \todo{Afsnittet skal være mere detaljeorienteret og forklare anvendt teori}
 \todo{Begrund opstilling / framework af projekt}
 \todo{Gennemgå funktionaliteten af hvert komponent i projektet}
 \subsection{Framework} %Framework -> diagrammer "this is why is good" -> Dyk ned i componenter 
-To support the investigation of structured hybrid time series prediction strategies, we develop an integrated framework in which the system's componenets operate together to enable sequential execution, evaluation, and comparison of forecasting methods. The framework connects four principal components: 
+To support the investigation of structured hybrid time series prediction strategies, we develop an integrated framework in which the system's components operate together to enable sequential execution, evaluation, and comparison of forecasting methods. The framework connects four principal components: 
 \begin{enumerate}
     \item An LSTM model responsible for machine learning-based predictions.
-    \item A backtesting engine for sequential evaluation of strategies on historical data
+    \item A backtesting engine for sequential evaluation of strategies on historical data.
     \item A unified API layer that orchestrates data flow and provides standardized access to system functionality.
     \item A frontend interface for strategy design, visual analysis and interaction.
 \end{enumerate}
@@ -44,20 +44,51 @@ Each node receives a univariate price series from a preceding selector, which ex
 The node operates in a walk-forward manner. A fixed start date defines the beginning of the training window, while the end of the window advances with each bar in the dataset. At every bar $t$, the model loads its windowed training data and produces a vector of forecasts for the next $N$ periods (e.g., $\hat{p}_{t+1}, \hat{p}_{t+2}, \ldots, \hat{p}_{t+N}$). These predictions are stored as a nested structure, one forecast vector per historical bar, and can be specified using selector nodes.
 
 AI-Nodes enable strategies to incorporate ML-based expectations of short-or medium-term price movements, which can be combined with conventional condition nodes or threshold rules to construct hybrid rule-based and AI-driven trading strategies.
-
-A full overview and breakdown in UML-form of the different components can be seen in appendix \ref{} \todo{add to appendix}
 \end{itemize}
+
+A full overview and breakdown in UML-form of the different components can be seen in appendix \todo{add to appendix}
 
 \subsection{LSTM Model Specification}
 
-To model non-linear dependencies, the system utilizes a Long Short-Term Memory (LSTM) network implemented in TensorFlow \cite{Hochreiter1997}. 
-\todo{LSTM pseudokode}
+To capture non-linear temporal dependencies in financial time series, the system employs a Long Short-Term Memory (LSTM) network. LSTMs are a specialized variant of Recurrent Neural Networks (RNNs) designed to address the vanishing gradient problem inherent in standard RNNs, which hampers the ability to learn long-term dependencies \cite{Hochreiter1997}.
+
+\subsubsection{Theoretical Background}
+Unlike standard feedforward networks, RNNs maintain an internal state (memory) that processes sequences of inputs. However, during backpropagation through time, gradients in standard RNNs tend to decay exponentially, making it difficult to propagate error signals over long sequences.
+
+The LSTM architecture introduces a memory cell $C_t$ modulated by three distinct gating mechanisms: the forget gate $f_t$, the input gate $i_t$, and the output gate $o_t$. These gates regulate the flow of information, allowing the network to retain relevant historical information while discarding noise.
+
+The transition equations for a single LSTM cell at time step $t$ are defined as follows:
+
+\begin{align}
+    f_t &= \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) \\
+    i_t &= \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) \\
+    \tilde{C}_t &= \tanh(W_C \cdot [h_{t-1}, x_t] + b_C) \\
+    C_t &= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \\
+    o_t &= \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) \\
+    h_t &= o_t \odot \tanh(C_t)
+\end{align}
+
+where $\sigma$ denotes the sigmoid activation function, $\odot$ represents element-wise multiplication, $x_t$ is the input vector, and $h_t$ is the hidden state vector. This gating structure enables the gradient to flow unmodified through the cell state $C_t$, effectively mitigating the vanishing gradient problem.
+
+\subsubsection{Network Architecture}
+The implemented model architecture is a stacked LSTM network designed for regression. It consists of the following layers:
+\begin{itemize}
+    \item \textbf{Input Layer:} Accepts a sequence of shape $(k, 1)$, where $k$ is the lookback window size.
+    \item \textbf{Hidden Layers:} Three stacked LSTM layers with 50 units each. The first two layers return full sequences to preserve temporal structure, while the final LSTM layer returns only the last hidden state vector.
+    \item \textbf{Dropout:} A dropout rate (e.g., 0.2) is applied between layers to prevent overfitting.
+    \item \textbf{Output Layer:} A single Dense (fully connected) layer with a linear activation function to produce the scalar forecast $\hat{y}_{t+1}$.
+\end{itemize}
+The model is optimized using the Adam algorithm, minimizing the Mean Squared Error (MSE) loss function.
 
 \subsubsection{Preprocessing}
-To address the non-stationary nature of financial data, raw prices are converted into logarithmic returns ($r_t = \ln(P_t / P_{t-1})$). These returns are then normalized via Min-Max scaling to the range $[0, 1]$ to facilitate gradient convergence.
+Financial time series are often non-stationary. To stabilize the mean and variance, raw OHLCV closing prices $P_t$ are transformed into logarithmic returns:
+\begin{equation}
+    r_t = \ln\left(\frac{P_t}{P_{t-1}}\right)
+\end{equation}
+Subsequently, the data is normalized to the range $[-1, 1]$ using Min-Max scaling to ensure stable convergence during gradient descent.
 
 \subsubsection{Training and Inference}
-The model utilizes a sliding window approach. A lookback window of size $k$ is used to predict the next target value. The training process is structured as a walk-forward validation: the model is trained on a fixed historical window, and predictions are generated sequentially for the subsequent unseen data points. This ensures that no future information leaks into the prediction at time $t$.
+The training process utilizes a sliding window technique. For a chosen lookback period $k$, the model learns to map a sequence of historical returns $X_t = \{r_{t-k}, \dots, r_{t-1}\}$ to the next target return $r_t$. Inference is performed in a walk-forward manner, ensuring that predictions at time $t$ rely solely on information available up to $t-1$.
 
 \subsection{Experimental Design}
 To validate the efficacy of hybrid strategies, we designed an experiment comparing three distinct strategy archetypes across two contrasting asset classes.

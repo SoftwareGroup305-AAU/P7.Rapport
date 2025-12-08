@@ -29,14 +29,14 @@ The node operates in a walk-forward manner. A fixed start date defines the begin
 
 AI-Nodes enable strategies to incorporate ML-based expectations of short-or medium-term price movements, which can be combined with conventional condition nodes or threshold rules to construct hybrid rule-based and AI-driven trading strategies.
 
-A full overview and breakdown in UML-form of the different components can be seen in appendix \ref{} \todo{add to appendix}
+A full overview and breakdown in UML-form of the different components can be seen in appendix \todo{add to appendix}
 
 %API Design
-\subsection{API Design.}
+\subsection{API Design}
 \todo{Burde sættes i forlængelse af introduktionen og tilpasses}
 We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
 
-\subsection{Client (Front-End) Design}\todo{method}
+\subsection{Client (Front-End) Design}
 
 We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
 The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
@@ -49,14 +49,23 @@ A dedicated back-testing panel allows users to execute the constructed node grap
 The interface therefore functions as both a modeling tool (similar in concept to node-based UML-style editors) and an experimentation environment, enabling users to iteratively design, test, and refine quantitative strategies through a highly visual and intuitive workflow.
 
 %Communication Strategy
-\subsection{Communication Strategy}.
+\subsection{Communication Strategy}
 \todo{Burde sættes i forlængelse af introduktionen og tilpasses}
 We design a structured communication model based on a request/response pattern. This strategy enables efficient coordination between system modules, minimizing latency and ensures reliable message delivery under varying load conditions. By formalizing the communication, the system gains improved robustness and supports independent development and evaluation of interacting components.
 
 %LSTM Implementation
-\subsection{LSTM Implementation.}
-\todo{Burde sættes i forlængelse af introduktionen og tilpasses}
-A machine learning service was developed encapsulating a Long Short-Term Memory (LSTM)\todo{abbreviation consistency} network using TensorFlow. To address the non-stationary nature of financial time series, the implementation incorporates an automated preprocessing pipeline that transforms raw asset prices into logarithmic returns ($r_t = \ln(P_t / P_{t-1})$) prior to normalization via Min-Max scaling. The architecture utilizes a configurable sliding window approach for sequence generation, where a lookback parameter defines the number of historical observations used to predict the next value. The training pipeline supports configurable hyperparameters including the number of LSTM layers, hidden units, dropout rate, and batch size.
+\subsection{LSTM Service Implementation}
+
+We developed a dedicated machine learning service that encapsulates the LSTM model described in Section \ref{sec:method}. This service abstracts the complexities of TensorFlow and provides a high-level interface for the strategy builder.
+
+The implementation provides an automated pipeline consisting of three stages:
+\begin{enumerate}
+    \item \textbf{Data Ingestion \& Transformation:} The service automatically fetches raw price data from the ClickHouse database, computes logarithmic returns, and applies Min-Max scaling. This ensures that the model always receives stationary, normalized data without manual intervention.
+    \item \textbf{Model Lifecycle Management:} The system handles the initialization, training, and serialization of models. Trained models are saved alongside their metadata (hyperparameters, scaling factors, and training timestamps) to ensure reproducibility.
+    \item \textbf{Batched Inference:} To support efficient backtesting, the service implements a vectorized inference engine. Instead of predicting one time-step at a time, the system constructs batches of sliding windows and processes them in parallel on the GPU, if available, significantly reducing the time required to evaluate strategies over long historical periods.
+\end{enumerate}
+
+This modular implementation allows the machine learning component to be updated or swapped (e.g., changing the architecture or hyperparameters) without affecting the rest of the strategy framework.
 
 \subsection{Implemented Strategy Archetypes}
 To validate the modular framework and investigate whether statistical indicators can function as "regime filters" for machine-learning predictions, we constructed three distinct classes of trading strategies using the node-based architecture. These archetypes represent fundamentally different approaches to algorithmic trading and enable controlled comparison between traditional, AI-driven, and hybrid methodologies.
@@ -92,12 +101,12 @@ By comparing results across these two different asset classes, the study aims to
 \textbf{Bitcoin Results: The High-Volatility Case}
 
 Table~\ref{tab:btc_results} presents the aggregated performance metrics across 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
-\todo{The following table is fucked}
+
 \begin{table}[h]
 \centering
 \caption{Bitcoin Strategy Performance Summary (2020--2025)}
 \label{tab:btc_results}
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrr}
 \hline
 \textbf{Strategy} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{Avg PF} & \textbf{Count} \\
 \hline
