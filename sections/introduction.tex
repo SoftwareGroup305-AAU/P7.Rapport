@@ -4,7 +4,7 @@ Time series prediction has become a critical component of various modern analyti
 
 Recently, machine learning models have begun to compete with classical statistical and quantitative models as methodology for time series prediction. Traditional quantitative strategies rely on technical analysis to identify historical patterns through statistical indicators \cite{Ariyo2014}. Although interpretable, these linear methods often fail to capture complex market dynamics. In contrast, deep learning models, particularly Long Short-Term Memory (LSTM) networks, excel at modeling non-linear dependencies \cite{Hochreiter1997}. However, standalone machine learning models frequently suffer from overfitting and lack of transparency in decision-making \cite{Fischer2018}.
 
-``Hybrid strategies'' that integrate deterministic technical indicators with probabilistic machine learning predictions offer a potential solution to these limitations \cite{Sezer2020}. Such strategies aim to take advantage of the strengths of both domains and address the shortcomings of each approach in isolation, allowing construction of models that are interpretable and accurate across various time series application domains.
+`Hybrid strategies` that integrate deterministic technical indicators with probabilistic machine learning predictions offer a potential solution to these limitations \cite{Sezer2020}. Such strategies aim to take advantage of the strengths of both domains and address the shortcomings of each approach in isolation, allowing construction of models that are interpretable and accurate across various time series application domains.
 
 To facilitate the investigation of the efficacy of using hybrid strategies for time series modeling, a modular platform was developed that integrates LSTM inference directly into a strategy builder. This system allows for the composition of logical dataflows in which machine learning predictions serve as auxiliary signals alongside traditional quantitative models within a broader technical framework.
 
@@ -13,10 +13,10 @@ Our contributions are summarized as follows:
 \subsection{Strategy Structure}
 We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. 
  This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. 
- These AI nodes utilize Long Short-Term Memory (LSTM) networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}. 
+ These AI nodes utilize Long Short-Term Memory (LSTM)\todo{abbreviation consistency} networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}. 
 
 \subsection{API Design}
-We propose a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
+We propose\todo{grammatical tense consistency} a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
 
 \subsection{Client (Front-End) Design}
 We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
@@ -25,13 +25,14 @@ Each node represents a functional component of the strategy, such as assets, ind
 
 The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. \todo{udvid afsnit eller eventuelt skriv om det i method, for at klargøre overholdelse af studieordning}
 
-A dedicated back-testing panel allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
+A dedicated back-testing panel\todo{panel?} allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
  
 The interface therefore functions as both a modeling tool (similar in concept to node-based UML-style editors) and an experimentation environment, enabling users to iteratively design, test, and refine quantitative strategies through a highly visual and intuitive workflow.
 
 
 \subsection{Communication Strategy}
-We established a structured communication model using a request/response pattern to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently.
+We established a structured communication model using a request/response pattern\todo{programmønsterforklaring givet studieordning} to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently.
+\todo{lidt af et nothing afsnit, udvid eller remove?}
 %The primary contribution of this study is an evaluation of whether hybrid methodologies outperform monolithic statistical or machine learning approaches \cite{Picasso2019}.
 
 % Financial time series are inherently noisy and non-stationary, making accurate prediction a challenge \cite{Fama1970}
