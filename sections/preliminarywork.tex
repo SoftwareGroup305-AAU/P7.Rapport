@@ -9,4 +9,7 @@ To address the limitations of linear statistical models, the system employs a LS
 
 The training process is structured as a supervised learning task. The raw OHLCV\todo{abbreviation consistency} data, specifically the closing price, which is converted to a logarithmic return and is restructured using a sliding window technique, for a chosen lookback period $k$, the model learns to map a sequence of historical prices $X_t = \{x_{t-k}, \dots, x_{t-1}\}$ to the next target value $x_t$. To ensure that the model converges properly during training, the input data is normalized to the range $[0, 1]$ using Min-Max scaling, preventing large price values from destabilizing the weights of the neural network. \todo{kilde indsætter jeg snart} \todo{Paragraf kan sammenslås med Method afsnittet}
 
-The network architecture is constructed using the Keras functional API with TensorFlow as the backend. It consists of LSTM layers designed to extract temporal features, followed by fully connected Dense layers that map these features to a scalar output. The model is optimized using the Adam algorithm, minimizing the Mean \todo{kilde indsætter jeg snart}
+The network architecture is constructed using the Keras functional API with TensorFlow as the backend. It consists of LSTM layers designed to extract temporal features, followed by fully connected Dense layers that map these features to a scalar output. The model is optimized using the Adam algorithm, minimizing the Mean. \todo{kilde indsætter jeg snart}
+
+\todo{Sektion om finansielle termer relevant for forståelse af resultatforklaring}
+% forklaring af MA, SMA, EMA, RSI, momentum, beta, drawdown, candlestick / bar, pnl / running balance

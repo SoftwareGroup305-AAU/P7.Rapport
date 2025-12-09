@@ -9,7 +9,7 @@ Recently, machine learning models have begun to compete with classical statistic
 To facilitate the investigation of the efficacy of using hybrid strategies for time series modeling, a modular platform was developed that integrates LSTM inference directly into a strategy builder. This system allows for the composition of logical dataflows in which machine learning predictions serve as auxiliary signals alongside traditional quantitative models within a broader technical framework.
 
 Our contributions are summarized as follows:
-
+\todo{omskriv følgende sektioner til korrekt grammatisk tid}
 \subsection{Strategy Structure}
 We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. 
  This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. 
@@ -23,7 +23,7 @@ We designed a web-based client front-end to provide an interactive environment f
 The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
 Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order.
 
-The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. 
+The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. \todo{udvid afsnit eller eventuelt skriv om det i method, for at klargøre overholdelse af studieordning}
 
 A dedicated back-testing panel allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
  

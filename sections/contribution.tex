@@ -12,40 +12,44 @@ We developed a dedicated machine learning service that encapsulates the LSTM mod
 
 \subsection{Evaluation and Results}
 
-The experimental evaluation followed an iterative, two-phase approach designed to address the limitations discovered in the initial Bitcoin experiments. The first phase established baseline performance on a high-volatility asset (Bitcoin) and revealed critical issues with training bias and overfitting. The second phase applied these lessons to a low-volatility equity (JPMorgan Chase) using improved training methodology and proper temporal validation, enabling a cleaner assessment of whether statistical filters genuinely enhance AI-driven trading strategies.
+The experimental evaluation followed an iterative, two-phase approach designed to address the limitations discovered in the initial Bitcoin experiments. The first phase established baseline performance on a high-volatility asset (Bitcoin) and revealed critical issues with training bias and overfitting. The second phase applied these lessons to a low-volatility equity (JPMorgan Chase) using an improved training methodology and proper temporal validation, enabling a cleaner assessment of whether statistical filters genuinely enhance AI-driven trading strategies.
 
 \subsubsection{Phase 1: Bitcoin Experiments and Training Bias Discovery}
 
 \textbf{Experimental Setup and Methodology Issues.}
-The initial Bitcoin experiments utilized an LSTM model trained exclusively on 2023 data, a single year characterized by sustained bull market conditions, particularly the strong uptrend in late 2023. The model was then tested on data extending into 2024--2025, which continued the bullish trend present in the training data. This temporal overlap between training regime and test regime introduced significant training bias: the model learned to predominantly predict upward price movements because that pattern dominated its training period, and this bias appeared to be validated during backtesting because the test period exhibited similar bullish characteristics. The limited training window (one year) further exacerbated overfitting, as the model had insufficient exposure to diverse market conditions.
+The initial Bitcoin experiments utilized an LSTM model trained exclusively on 2023 data, a single year characterized by sustained bull market conditions, particularly the strong uptrend in late 2023. The model was then tested on data extending into 2024--2025, which continued the bullish trend present in the training data. This temporal overlap between the training regime and the test regime introduced significant training bias: the model learned to predominantly predict upward price movements because that pattern dominated its training period, and this bias appeared to be validated during backtesting because the test period exhibited similar bullish characteristics. The limited training window (one year) further exacerbated overfitting, as the model had insufficient exposure to diverse market conditions.
 
 \textbf{Observed Performance and Interpretation.}
 
-Table~\ref{tab:btc_results} presents the aggregated performance metrics across 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
+Table~\ref{tab:btc_results} presents the aggregated performance metrics of 340 strategy configurations tested on Bitcoin price data from 2020 to 2025. The results reveal distinct performance characteristics across strategy archetypes.
 
 \begin{table}[h]
 \centering
 \caption{Bitcoin Strategy Performance Summary (2020--2025)}
 \label{tab:btc_results}
-\begin{tabular}{lrrrrrrr}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
 \hline
-\textbf{Strategy} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{Avg PF} & \textbf{Count} \\
+\textbf{Strategy} & \textbf{Avg Ret} & \textbf{Best Ret} &
+\textbf{Avg WR} & \textbf{Avg DD} & \textbf{Avg PF} & \textbf{Count} \\
 \hline
-AI Only & 614.75\% & 6145.69\% & 42.1\% & 27.09\% & 1.84 & 20 \\
+AI Only    & 614.75\% & 6145.69\% & 42.1\% & 27.09\% & 1.84 & 20 \\
 Single EMA & 153.70\% & 1322.59\% & 40.6\% & 16.71\% & 1.91 & 80 \\
-Dual EMA & 167.45\% & 1490.96\% & 41.1\% & 16.87\% & 1.93 & 80 \\
-RSI & 332.91\% & 4165.56\% & 42.5\% & 27.61\% & 1.83 & 60 \\
-SMA\_20 & 110.71\% & 872.61\% & 36.8\% & 14.72\% & 1.54 & 20 \\
-SMA\_50 & 127.35\% & 827.84\% & 38.5\% & 15.72\% & 1.65 & 20 \\
-SMA\_100 & 115.32\% & 694.37\% & 38.9\% & 21.63\% & 1.69 & 20 \\
-SMA\_200 & 199.17\% & 1256.70\% & 43.5\% & 22.04\% & 2.16 & 20 \\
+Dual EMA   & 167.45\% & 1490.96\% & 41.1\% & 16.87\% & 1.93 & 80 \\
+RSI        & 332.91\% & 4165.56\% & 42.5\% & 27.61\% & 1.83 & 60 \\
+SMA\_20    & 110.71\% & 872.61\%  & 36.8\% & 14.72\% & 1.54 & 20 \\
+SMA\_50    & 127.35\% & 827.84\%  & 38.5\% & 15.72\% & 1.65 & 20 \\
+SMA\_100   & 115.32\% & 694.37\%  & 38.9\% & 21.63\% & 1.69 & 20 \\
+SMA\_200   & 199.17\% & 1256.70\% & 43.5\% & 22.04\% & 2.16 & 20 \\
 \hline
 \end{tabular}
+}%
 \end{table}
+
 
 \subsubsection{AI-Only Performance and Training Bias}
 
-The AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration reaching 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to severe training bias. The LSTM model was trained on only 2023 data, a single year dominated by a sustained bull market. This limited training window biased the model toward predicting upward price movements, which proved correct during the majority of the test period (2024--2025 bull continuation). Consequently, the high win rate and returns reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
+AI-Only strategies achieved the highest average return (614.75\%) with a peak configuration of 6145.69\%, accompanied by a win rate of 42.1\%. However, these results must be interpreted with caution due to severe training bias. The LSTM model was trained on only 2023 data, a single year dominated by a sustained bull market. This limited training window biased the model toward predicting upward price movements, which proved correct during the majority of the test period (2024--2025 bull continuation). Consequently, the high win rate and returns reflect regime-specific overfitting rather than robust predictive capability. The elevated average drawdown of 27.09\% and low profit factor of 1.84 further suggest that the model lacks adaptive risk management during market reversals.
 
 \subsubsection{Short-Term Filter Underperformance}
 
@@ -87,6 +91,7 @@ Table~\ref{tab:jpm_results} presents the aggregated performance metrics for JPMo
 \centering
 \caption{JPM Strategy Performance (Out-of-Sample: 2024--2025)}
 \label{tab:jpm_results}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrrr}
 \hline
 \textbf{Indicator} & \textbf{Avg Ret} & \textbf{Best Ret} & \textbf{Avg WR} & \textbf{Avg DD} & \textbf{N} \\
@@ -99,6 +104,7 @@ dema\_50\_100 & 16.4\% & 34.9\% & 68.7\% & 2.8\% & 20 \\
 RSI & 15.8\% & 48.3\% & 55.4\% & 6.3\% & 20 \\
 \hline
 \end{tabular}
+}
 \end{table}
 
 \subsubsection{Superior Win Rates and Stability}
@@ -126,7 +132,7 @@ The reversal of relative performance between Phase 1 and Phase 2 demonstrates th
 The iterative experimental process reveals a critical lesson for practitioners: \textbf{apparent AI-Only outperformance must be validated against proper temporal splits and asset diversity before deployment}. The Bitcoin results, while impressive in raw magnitude, would likely degrade significantly in a regime-shifted market (e.g., a prolonged bear market or sideways consolidation), whereas the JPM hybrid strategies demonstrated robust performance on truly unseen data. For production trading systems, this suggests that hybrid architectures with long-period trend filters (20/50, 50/100 EMA) provide superior risk-adjusted returns and generalization capability compared to unconstrained AI predictions, particularly in stable asset classes where overfitting to historical bull markets poses a significant risk.
 
 
-\subsection{Discussion}
+\subsection{Discussion}\label{discussion}
 Given the modular framework of the strategy builder approach used compose and measure performance of strategies, allowing for construction of very market-, asset- or time-specific strategies for short term decision making or forecasting, it can be argued that the accuracy and success rate of a strategy is largely dependent on the competence of the composition. A competently composed statistical strategy will likely still outperform a poorly constructed machine-learning or hybrid strategy, despite these results. That being said, hybrid strategies have been shown to be useful on a baseline level, given the modular strategy builder framework, allow for utilization of more tools during strategy composition. This could in turn lead to more complex networks of decision making logic, allowing a strategy to capitalize better on temporal trends. In this sense, the strength of a hybrid approach to time series prediction and forecasting within a modular strategy building framework is not solely in improved predictive accuracy, but in how it enhances overall strategy composition. When used competently, the combination of traditional statistical indicators and machine learning components can lead to strategies that are more adaptive and better aligned with asset-specific behaviors and trends.
 
 While the strategy composition itself is critical advantageous algorithmic decision making, the machine learning components also play a major role in the hybrid strategies. While traditional statistical indicators supply direction indications based on historical data, the predictions of machine learning components may vary greatly based on the configuration of the individual component. Furthermore, the utility that a component may provide in a strategy concerning one asset may not be the same for strategies concerning other assets. This issue is partially alleviated by the component oriented framework of the project which includes the implementation of a backtester to evaluate strategies real-time, and the utilization of LSTM, a lightweight machine learning architecture, which can be trained within a relatively short time frame. This time frame is dependent on the hardware, model complexity, epochs, and training data, but was for the most part below one hour with personal hardware. This framework can easily train new models on specific data, and gauge the usefulness of strategies on historical data through real-time testing and evaluation of decision-making capabilities.
