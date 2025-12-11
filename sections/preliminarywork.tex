@@ -9,5 +9,28 @@ The training process is structured as a supervised learning task. Granted the ut
 
 The network architecture is constructed using the Keras functional API with TensorFlow as the backend. It consists of LSTM layers designed to extract temporal features, followed by fully connected Dense layers that map these features to a scalar output. The model is optimized using the Adam algorithm\todo{what is this, is it important to mention?}, minimizing the Mean\todo{uppercase m?}. \todo{kilde indsætter jeg snart}
 
-\todo{Sektion om finansielle termer relevant for forståelse af resultatforklaring}
-% forklaring af MA, SMA, EMA, RSI, momentum, beta, drawdown, candlestick / bar, pnl / running balance, bollinger bands, crossovers, breakout rules, volatility filters
+\subsection{Financial Terminology}
+To facilitate the understanding of the financial concepts used throughout this report, the following dictionary defines key terms related to trading strategies, indicators, and market mechanics.
+
+\begin{description}
+    \item[OHLCV] Standard data format representing Open, High, Low, Close, and Volume for a specific time interval.
+    \item[Bar (Candlestick)] Visual representation of OHLC data for a single time period (e.g., 1 hour).
+    \item[Entry] Price or time at which a trade position is opened.
+    \item[Take-Profit (TP)] Price level for automatically closing a trade to lock in profits.
+    \item[Stop-Loss (SL)] Price level for automatically closing a trade to limit losses.
+    \item[Strategy] Set of rules defining trade entry, exit, and risk management.
+    \item[Trend] General direction of an asset's price (upward, downward, or sideways).
+    \item[Momentum] Rate of acceleration in price or volume changes.
+    \item[Volatility] Measure of the dispersion of returns; high volatility implies large price swings.
+    \item[Price Noise] Random fluctuations obscuring the underlying trend.
+    \item[Regime] Market environment with persistent behavior (e.g., high volatility, trending).
+    \item[Bull Market] Market condition with rising prices.
+    \item[Beta] Measure of an asset's volatility relative to the overall market.
+    \item[SMA (Simple Moving Average)] Arithmetic average of recent prices, smoothing data to identify trends.
+    \item[EMA (Exponential Moving Average)] Moving average weighting recent data more heavily, increasing responsiveness.
+    \item[RSI (Relative Strength Index)] Momentum oscillator measuring speed of price changes to identify overbought/oversold conditions.
+    \item[MACD (Moving Average Convergence Divergence)] Trend-following indicator showing the relationship between two moving averages.
+    \item[Bollinger Bands] Volatility indicator with a central moving average and bands at $\pm 2$ standard deviations.
+    \item[Drawdown] The maximum observed decline from a historical peak in balance.
+    \item[Profit Factor] Ratio of gross profit to gross loss; $>1.0$ indicates profitability.
+\end{description}
