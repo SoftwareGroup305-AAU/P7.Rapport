@@ -9,30 +9,32 @@ Recently, machine learning models have begun to compete with classical statistic
 To facilitate the investigation of the efficacy of using hybrid strategies for time series modeling, a modular platform was developed that integrates LSTM inference directly into a strategy builder. This system allows for the composition of logical dataflows in which machine learning predictions serve as auxiliary signals alongside traditional quantitative models within a broader technical framework.
 
 Our contributions are summarized as follows:
-\todo{omskriv følgende sektioner til korrekt grammatisk tid}
 \subsection{Strategy Structure}
 We developed a modular framework in which strategies are represented as Directed Acyclic Graphs (DAGs), allowing for the visual assembly of complex data pipelines \cite{paleyes2022empirical}. 
- This structure integrates deterministic nodes---such as Assets, Indicators, Selectors, and Logic---with probabilistic AI Prediction Nodes. 
- These AI nodes utilize Long Short-Term Memory (LSTM)\todo{abbreviation consistency} networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}. 
+ This structure integrates deterministic nodes, such as Assets, Indicators, Selectors, and Condition, with probabilistic AI Prediction Nodes. 
+ These machine learning (ML) nodes utilize LSTM networks \cite{Hochreiter1997, Fischer2018} to generate rolling forecasts, enabling the construction of hybrid strategies that combine rule-based technical analysis with data-driven machine learning predictions \cite{vanbekkum2021modular}. 
 
 \subsection{API Design}
-We propose\todo{grammatical tense consistency} a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
+We implemented a modular and extensible API that provides a well-defined interface for the LSTM model, backtesting module and for strategy-creation. The API abstracts away low-level behaviour while exposing only essential operations required by higher-end components, following the OpenAPI specification. This design reduces integration complexity, enables consistent access across clients, and supports extensions without requiring architectural changes.
 
 \subsection{Client (Front-End) Design}
-We designed a web-based client front-end to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
+We designed a web-based interface to provide an interactive environment for users to construct, configure, and back-test trading strategies. 
 The platform was implemented in React and follows a strategy-builder paradigm, where users can place, connect, and parameterize computational nodes within a graphical interface. 
 Each node represents a functional component of the strategy, such as assets, indicator, conditions, or machine-learning predictors. The directed connections between nodes specify the data-flow and execution order.
 
-The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine. \todo{udvid afsnit eller eventuelt skriv om det i method, for at klargøre overholdelse af studieordning}
+The client supports real-time validation of node graphs, such as checking for circular dependencies, contextual parameter editing, and visual feedback for errors or incompatible connections, ensuring that users can construct valid strategies without requiring direct knowledge of the underlying execution engine.
 
-A dedicated back-testing panel\todo{panel?} allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
+A dedicated backtesting function allows users to execute the constructed node graph against historical market data and analyze performance metrics.\todo{note to myself: ikke rigtigt men hvis vi får visualisering af backtesting resultater så ok }
  
 The interface therefore functions as both a modeling tool (similar in concept to node-based UML-style editors) and an experimentation environment, enabling users to iteratively design, test, and refine quantitative strategies through a highly visual and intuitive workflow.
 
-
 \subsection{Communication Strategy}
-We established a structured communication model using a request/response pattern\todo{programmønsterforklaring givet studieordning} to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently.
+We established a structured communication model using a request/response pattern to coordinate interactions between the system's modules. This approach minimizes latency and ensures reliable message delivery, resulting in a more robust system where components can be developed and managed independently. Furthermore, the modules individually utilize a service pattern, which helps increase separation of concerns. Individual tasks er delegated to specific services.\todo{expand pattern section}
 \todo{lidt af et nothing afsnit, udvid eller remove?}
+
+\subsection{Backtesting Module}
+We developed a backtesting module for executing the strategy composed on the client interface as a DAG over historical time series data. The backtesting continually and sequentially executes the strategy over the historical data, allowing real data to flow through the network to the individual nodes of the strategy. Based on the indicators and conditions, signals are generated, which take actions specified actions. These actions and their resulting states and performance metrics are tracked throughout the sequential executions, and are returned to the client interface for evaluation of the signals generated during the timespan of the historical data.
+
 %The primary contribution of this study is an evaluation of whether hybrid methodologies outperform monolithic statistical or machine learning approaches \cite{Picasso2019}.
 
 % Financial time series are inherently noisy and non-stationary, making accurate prediction a challenge \cite{Fama1970}
